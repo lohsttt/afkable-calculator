@@ -39,4 +39,4 @@ The calculator uses the following logic:
 * JavaScript (DOM manipulation, LocalStorage for settings)
 
 ---
-*Created for the community.*
+*Created for the community (ngl this is all ai).*
