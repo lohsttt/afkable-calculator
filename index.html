@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forge Ore Calculator</title>
+    <style>
+        :root {
+            --bg-color: #050505;
+            --card-bg: #141414;
+            --accent-color: #ffffff;
+            --text-muted: #888;
+            --border-radius: 12px;
+            --font-main: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --input-bg: #000;
+            --border-color: #222;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--accent-color);
+            font-family: var(--font-main);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* --- Header Section --- */
+        header {
+            text-align: center;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            max-width: 800px;
+            padding: 0 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            letter-spacing: -0.03em;
+            margin: 0;
+            background: linear-gradient(to right, #fff, #aaa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+        }
+
+        button.settings-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        button.settings-btn:hover {
+            border-color: #fff;
+            color: #fff;
+        }
+
+        /* --- Main Container --- */
+        .container {
+            width: 100%;
+            max-width: 1100px;
+            padding: 20px;
+            box-sizing: border-box;
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 30px;
+            align-items: start;
+        }
+
+        @media (max-width: 900px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* --- Input Grid (Compact Mode) --- */
+        .ore-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 10px;
+        }
+
+        .ore-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 10px 15px;
+            display: flex;
+            flex-direction: row; /* Horizontal Layout */
+            align-items: center;
+            gap: 15px;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .ore-card:hover {
+            border-color: #444;
+            background-color: #1a1a1a;
+        }
+
+        .ore-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            flex-shrink: 0; /* Prevent squishing */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 10px;
+            color: rgba(0,0,0,0.6);
+            text-transform: uppercase;
+        }
+
+        .ore-info {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .ore-name {
+            font-size: 0.9rem;
+            font-weight: 600;
+            line-height: 1.2;
+        }
+
+        .ore-multi {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        input[type="number"] {
+            width: 70px;
+            background: var(--input-bg);
+            border: 1px solid #333;
+            color: #fff;
+            padding: 6px;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input[type="number"]:focus {
+            border-color: #888;
+        }
+
+        /* --- Results Panel --- */
+        .results-panel {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 25px;
+            position: sticky;
+            top: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+
+        .results-header {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .combo-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .combo-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #222;
+            font-size: 0.9rem;
+        }
+
+        .combo-item:last-child { border-bottom: none; }
+        
+        .combo-meta { display: flex; flex-direction: column; }
+        .combo-sub { font-size: 0.75rem; color: #666; }
+        .combo-val { color: #4caf50; font-weight: bold; }
+
+        .total-box {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #333;
+            text-align: center;
+        }
+
+        .total-label {
+            color: #888; 
+            font-size: 0.9rem;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .total-val {
+            font-size: 1.8rem;
+            font-weight: 700;
+            display: block;
+            background: linear-gradient(to right, #fff, #ccc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* --- Settings Modal --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+        }
+
+        .modal-header {
+            padding: 20px;
+            background: #222;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #333;
+        }
+
+        .modal-body {
+            padding: 20px;
+            overflow-y: auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .modal-footer {
+            padding: 20px;
+            border-top: 1px solid #333;
+            text-align: right;
+            background: #222;
+        }
+
+        .toggle-label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 6px;
+            transition: background 0.1s;
+        }
+        .toggle-label:hover { background: #333; }
+        
+        .toggle-label input { margin-right: 10px; }
+        .toggle-text { font-size: 0.9rem; }
+
+        button.primary-btn {
+            background: #fff;
+            color: #000;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        button.text-btn {
+            background: none;
+            color: #888;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button.text-btn:hover { color: #fff; }
+
+        /* Utility Colors */
+        .bg-gray { background: #555; }
+        .bg-orange { background: #b55d38; }
+        .bg-beige { background: #dcc8a8; }
+        .bg-blue { background: #4a6fa5; }
+        .bg-red { background: #a54a4a; }
+        .bg-cyan { background: #4aa5a5; }
+        .bg-purple { background: #7d4aa5; }
+        .bg-green { background: #4aa560; }
+        .bg-yellow { background: #d4c63b; }
+        .bg-white { background: #eee; color: #000 !important; }
+        .bg-cosmic { background: linear-gradient(135deg, #f0f, #0ff); }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Ore Calculator</h1>
+        <div class="controls">
+            <button class="settings-btn" onclick="openSettings()">&#9881; Filter Ores</button>
+            <button class="settings-btn" onclick="resetAll()">&#8634; Reset</button>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="ore-grid" id="oreGrid">
+            </div>
+
+        <aside class="results-panel">
+            <div class="results-header">
+                <span>Best Combination</span>
+            </div>
+            
+            <ul class="combo-list" id="comboList">
+                <li style="color: #666; font-style: italic; padding:10px 0;">Enter amounts to calculate...</li>
+            </ul>
+
+            <div class="total-box">
+                <span class="total-label">Forge Result Multiplier:</span>
+                <span class="total-val" id="grandTotal">0.00x - 0.00x</span>
+            </div>
+        </aside>
+    </div>
+
+    <div class="modal-overlay" id="settingsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <span style="font-weight:600;">Manage Ores</span>
+                <span style="cursor:pointer; color:#888;" onclick="closeSettings()">&times;</span>
+            </div>
+            <div class="modal-body" id="settingsList">
+                </div>
+            <div class="modal-footer">
+                <button class="text-btn" onclick="toggleAllSettings(true)">Select All</button>
+                <button class="primary-btn" onclick="saveSettings()">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Data ---
+        const defaultOres = [
+            { name: "Coal Ore", multi: 0.01, colorClass: "bg-gray" },
+            { name: "Copper Ore", multi: 0.03, colorClass: "bg-orange" },
+            { name: "Iron Ore", multi: 0.05, colorClass: "bg-beige" },
+            { name: "Zinc Ore", multi: 0.1, colorClass: "bg-white" },
+            { name: "Earth Ore", multi: 0.15, colorClass: "bg-green" },
+            { name: "Silver Ore", multi: 0.2, colorClass: "bg-white" },
+            { name: "Gold Ore", multi: 0.33, colorClass: "bg-yellow" },
+            { name: "Ruby Ore", multi: 0.75, colorClass: "bg-red" },
+            { name: "Sapphire Ore", multi: 1.5, colorClass: "bg-blue" },
+            { name: "Diamond Ore", multi: 2.5, colorClass: "bg-cyan" },
+            { name: "Emerald Ore", multi: 3.5, colorClass: "bg-green" },
+            { name: "Eye Core", multi: 5, colorClass: "bg-purple" },
+            { name: "Mithril Ore", multi: 10, colorClass: "bg-blue" },
+            { name: "Obsidian", multi: 30, colorClass: "bg-gray" },
+            { name: "Uranium Ore", multi: 50, colorClass: "bg-green" },
+            { name: "Plutonium Ore", multi: 75, colorClass: "bg-purple" },
+            { name: "Antimatter Ore", multi: 100, colorClass: "bg-cosmic" },
+            { name: "Diamond Cluster", multi: 150, colorClass: "bg-cyan" },
+            { name: "Cosmic Clutter", multi: 200, colorClass: "bg-cosmic" }
+        ];
+
+        let ores = JSON.parse(JSON.stringify(defaultOres)); // Deep copy
+
+        // Load saved settings
+        const savedSettings = localStorage.getItem('forgeOreSettings');
+        if (savedSettings) {
+            const savedState = JSON.parse(savedSettings);
+            ores.forEach(ore => {
+                if (savedState.hasOwnProperty(ore.name)) {
+                    ore.active = savedState[ore.name];
+                } else {
+                    ore.active = true;
+                }
+            });
+        } else {
+            ores.forEach(ore => ore.active = true);
+        }
+
+        let userAmounts = {};
+
+        const gridContainer = document.getElementById('oreGrid');
+        const comboList = document.getElementById('comboList');
+        const grandTotalEl = document.getElementById('grandTotal');
+        const modal = document.getElementById('settingsModal');
+        const settingsList = document.getElementById('settingsList');
+
+        // --- Core Functions ---
+
+        function initGrid() {
+            gridContainer.innerHTML = '';
+            
+            ores.forEach((ore, index) => {
+                if (!ore.active) return;
+
+                const card = document.createElement('div');
+                card.className = 'ore-card';
+                
+                const currentVal = userAmounts[ore.name] || '';
+
+                card.innerHTML = `
+                    <div class="ore-icon ${ore.colorClass}">
+                        ${ore.name.substring(0,2)}
+                    </div>
+                    <div class="ore-info">
+                        <div class="ore-name">${ore.name}</div>
+                        <div class="ore-multi">${ore.multi}x</div>
+                    </div>
+                    <input type="number" 
+                           id="input-${index}" 
+                           min="0" 
+                           placeholder="0" 
+                           value="${currentVal}"
+                           oninput="updateAmount(${index}, this.value)">
+                `;
+                gridContainer.appendChild(card);
+            });
+            
+            calculateOptimalForge();
+        }
+
+        function updateAmount(index, val) {
+            userAmounts[ores[index].name] = val;
+            calculateOptimalForge();
+        }
+
+        function calculateOptimalForge() {
+            let calculatedStackValues = [];
+
+            ores.forEach((ore) => {
+                if (ore.active) {
+                    const amount = parseFloat(userAmounts[ore.name]) || 0;
+                    if (amount > 0) {
+                        calculatedStackValues.push({
+                            name: ore.name,
+                            amount: amount,
+                            baseMulti: ore.multi,
+                            totalValue: amount * ore.multi
+                        });
+                    }
+                }
+            });
+
+            // Sort High to Low
+            calculatedStackValues.sort((a, b) => b.totalValue - a.totalValue);
+
+            // Render top 5
+            renderResults(calculatedStackValues.slice(0, 5));
+        }
+
+        function renderResults(top5) {
+            comboList.innerHTML = '';
+            let totalMultiplier = 0;
+
+            if (top5.length === 0) {
+                comboList.innerHTML = '<li style="color: #666; font-style: italic; padding:10px 0;">No ores entered.</li>';
+                grandTotalEl.innerText = '0.00x - 0.00x';
+                return;
+            }
+
+            top5.forEach(item => {
+                totalMultiplier += item.totalValue;
+                const li = document.createElement('li');
+                li.className = 'combo-item';
+                li.innerHTML = `
+                    <div class="combo-meta">
+                        <span class="combo-name">${item.name}</span>
+                        <span class="combo-sub">${item.amount} &times; ${item.baseMulti}x</span>
+                    </div>
+                    <div class="combo-val">+${item.totalValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}x</div>
+                `;
+                comboList.appendChild(li);
+            });
+
+            // Fill Empties
+            if (top5.length < 5) {
+                for (let i = 0; i < (5 - top5.length); i++) {
+                    const li = document.createElement('li');
+                    li.className = 'combo-item';
+                    li.style.opacity = '0.3';
+                    li.innerHTML = `<span>Empty Slot</span><span>--</span>`;
+                    comboList.appendChild(li);
+                }
+            }
+
+            // Calculation Logic Change:
+            // Calculate range: [Total / 2] to [Total]
+            const minVal = totalMultiplier / 2;
+            const maxVal = totalMultiplier;
+
+            // Helper to format nicely
+            const fmt = (n) => n.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+            grandTotalEl.innerText = `${fmt(minVal)}x - ${fmt(maxVal)}x`;
+        }
+
+        function resetAll() {
+            userAmounts = {};
+            initGrid();
+        }
+
+        // --- Settings Modal Logic ---
+
+        function openSettings() {
+            settingsList.innerHTML = '';
+            ores.forEach((ore, index) => {
+                const div = document.createElement('label');
+                div.className = 'toggle-label';
+                div.innerHTML = `
+                    <input type="checkbox" id="setting-${index}" ${ore.active ? 'checked' : ''}>
+                    <span class="toggle-text">${ore.name}</span>
+                `;
+                settingsList.appendChild(div);
+            });
+            modal.classList.add('active');
+        }
+
+        function closeSettings() {
+            modal.classList.remove('active');
+        }
+
+        function saveSettings() {
+            const savedState = {};
+            ores.forEach((ore, index) => {
+                const cb = document.getElementById(`setting-${index}`);
+                ore.active = cb.checked;
+                savedState[ore.name] = cb.checked;
+            });
+            
+            localStorage.setItem('forgeOreSettings', JSON.stringify(savedState));
+            
+            closeSettings();
+            initGrid();
+        }
+
+        function toggleAllSettings(state) {
+            const checkboxes = settingsList.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach(cb => cb.checked = state);
+        }
+
+        // Start
+        initGrid();
+
+    </script>
+</body>
+</html>
