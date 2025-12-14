@@ -229,6 +229,25 @@
             -webkit-text-fill-color: transparent;
         }
 
+        /* --- Footer (Visits) --- */
+        footer {
+            margin-top: auto;
+            padding: 20px;
+            color: #444;
+            font-size: 0.8rem;
+            text-align: center;
+        }
+        
+        .visit-counter {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #111;
+            padding: 6px 12px;
+            border-radius: 20px;
+            border: 1px solid #222;
+        }
+
         /* --- Settings Modal --- */
         .modal-overlay {
             position: fixed;
@@ -361,6 +380,13 @@
             </div>
         </aside>
     </div>
+    
+    <footer>
+        <div class="visit-counter">
+            <span>&#128065;</span> <span id="visit-count">...</span>
+            <span>Visits</span>
+        </div>
+    </footer>
 
     <div class="modal-overlay" id="settingsModal">
         <div class="modal">
@@ -482,10 +508,7 @@
                 }
             });
 
-            // Sort High to Low
             calculatedStackValues.sort((a, b) => b.totalValue - a.totalValue);
-
-            // Render top 5
             renderResults(calculatedStackValues.slice(0, 5));
         }
 
@@ -513,7 +536,6 @@
                 comboList.appendChild(li);
             });
 
-            // Fill Empties
             if (top5.length < 5) {
                 for (let i = 0; i < (5 - top5.length); i++) {
                     const li = document.createElement('li');
@@ -524,12 +546,8 @@
                 }
             }
 
-            // Calculation Logic Change:
-            // Calculate range: [Total / 2] to [Total]
             const minVal = totalMultiplier / 2;
             const maxVal = totalMultiplier;
-
-            // Helper to format nicely
             const fmt = (n) => n.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
             grandTotalEl.innerText = `${fmt(minVal)}x - ${fmt(maxVal)}x`;
@@ -567,9 +585,7 @@
                 ore.active = cb.checked;
                 savedState[ore.name] = cb.checked;
             });
-            
             localStorage.setItem('forgeOreSettings', JSON.stringify(savedState));
-            
             closeSettings();
             initGrid();
         }
@@ -579,8 +595,27 @@
             checkboxes.forEach(cb => cb.checked = state);
         }
 
+        // --- Visit Counter Logic ---
+        function updateVisitCount() {
+            const countEl = document.getElementById('visit-count');
+            // CHANGE THIS to your own unique string (e.g. your github username)
+            const namespace = 'forge-ore-calculator-lohsttt'; 
+            const key = 'visits';
+
+            fetch(`https://api.countapi.xyz/hit/${namespace}/${key}`)
+                .then(response => response.json())
+                .then(data => {
+                    countEl.innerText = data.value;
+                })
+                .catch(err => {
+                    console.error("Counter Error:", err);
+                    countEl.innerText = "Err";
+                });
+        }
+
         // Start
         initGrid();
+        updateVisitCount();
 
     </script>
 </body>
