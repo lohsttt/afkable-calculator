@@ -424,7 +424,10 @@
             { name: "Plutonium Ore", multi: 75, colorClass: "bg-purple" },
             { name: "Antimatter Ore", multi: 100, colorClass: "bg-cosmic" },
             { name: "Diamond Cluster", multi: 150, colorClass: "bg-cyan" },
-            { name: "Cosmic Clutter", multi: 200, colorClass: "bg-cosmic" }
+            { name: "Cosmic Clutter", multi: 200, colorClass: "bg-cosmic" },
+            // NEW ORES ADDED BELOW
+            { name: "Enderite Ore", multi: 500, colorClass: "bg-green" },
+            { name: "Stellar Ore", multi: 1000, colorClass: "bg-purple" }
         ];
 
         let ores = JSON.parse(JSON.stringify(defaultOres)); // Deep copy
@@ -433,11 +436,12 @@
         const savedSettings = localStorage.getItem('forgeOreSettings');
         if (savedSettings) {
             const savedState = JSON.parse(savedSettings);
+            // We need to merge in case new ores were added (like we just did)
             ores.forEach(ore => {
                 if (savedState.hasOwnProperty(ore.name)) {
                     ore.active = savedState[ore.name];
                 } else {
-                    ore.active = true;
+                    ore.active = true; // Default to true for new ores
                 }
             });
         } else {
@@ -598,11 +602,9 @@
             checkboxes.forEach(cb => cb.checked = state);
         }
 
-        // --- FIXED Visit Counter Logic (Using CounterAPI.dev) ---
+        // --- Visit Counter Logic ---
         function updateVisitCount() {
             const countEl = document.getElementById('visit-count');
-            
-            // This is the new, working API service
             const namespace = 'forge-ore-calculator-lohsttt'; 
             const key = 'visits';
 
